@@ -25,6 +25,7 @@
 
 #include <QtGlobal>
 
+#if 0
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
 #ifdef Q_OS_WIN
 // Define to export or import depending if we are building or using the library.
@@ -52,5 +53,7 @@
 #define QHTTPSERVER_API
 #endif
 #endif
-
+#else
+#define QHTTPSERVER_API
+#endif
 #endif
