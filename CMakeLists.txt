@@ -7,9 +7,9 @@ project(QHttpServer CXX)
 # === CONFIG ===============================================================
 set(PublicHeaderSubDirName libfins)
 
-set(PublicHeaderLocation       "${CMAKE_CURRENT_SOURCE_DIR}/src")
+set(PublicHeaderLocation       "${CMAKE_CURRENT_SOURCE_DIR}/QHttpServer")
 set(HeaderLocation             "${CMAKE_CURRENT_SOURCE_DIR}/http-parser")
-set(SourceLocation             "${CMAKE_CURRENT_SOURCE_DIR}/src")
+set(SourceLocation             "${CMAKE_CURRENT_SOURCE_DIR}/QHttpServer")
 
 
 # === DEPS =================================================================
