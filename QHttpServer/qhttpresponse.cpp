@@ -27,9 +27,10 @@
 
 #include "qhttpserver.h"
 #include "qhttpconnection.h"
+#include <QMutex>
 
 QHttpResponse::QHttpResponse(QHttpConnection *connection)
-    // TODO: parent child relation
+// TODO: parent child relation
     : QObject(0),
       m_connection(connection),
       m_headerWritten(false),
@@ -42,7 +43,7 @@ QHttpResponse::QHttpResponse(QHttpConnection *connection)
       m_useChunkedEncoding(false),
       m_finished(false)
 {
-   connect(m_connection, SIGNAL(allBytesWritten()), this, SIGNAL(allBytesWritten()));
+    connect(m_connection, SIGNAL(allBytesWritten()), this, SIGNAL(allBytesWritten()));
 }
 
 QHttpResponse::~QHttpResponse()
@@ -59,14 +60,16 @@ void QHttpResponse::setHeader(const QString &field, const QString &value)
 
 void QHttpResponse::writeHeader(const char *field, const QString &value)
 {
-    if (!m_finished) {
+    if (!m_finished)
+    {
         m_connection->write(field);
         m_connection->write(": ");
         m_connection->write(value.toUtf8());
         m_connection->write("\r\n");
-    } else
+    }
+    else
         qWarning()
-            << "QHttpResponse::writeHeader() Cannot write headers after response has finished.";
+                << "QHttpResponse::writeHeader() Cannot write headers after response has finished.";
 }
 
 void QHttpResponse::writeHeaders()
@@ -74,19 +77,24 @@ void QHttpResponse::writeHeaders()
     if (m_finished)
         return;
 
-    foreach(const QString & name, m_headers.keys()) {
+    foreach(const QString & name, m_headers.keys())
+    {
         QString value = m_headers[name];
-        if (name.compare("connection", Qt::CaseInsensitive) == 0) {
+        if (name.compare("connection", Qt::CaseInsensitive) == 0)
+        {
             m_sentConnectionHeader = true;
             if (value.compare("close", Qt::CaseInsensitive) == 0)
                 m_last = true;
             else
                 m_keepAlive = true;
-        } else if (name.compare("transfer-encoding", Qt::CaseInsensitive) == 0) {
+        }
+        else if (name.compare("transfer-encoding", Qt::CaseInsensitive) == 0)
+        {
             m_sentTransferEncodingHeader = true;
             if (value.compare("chunked", Qt::CaseInsensitive) == 0)
                 m_useChunkedEncoding = true;
-        } else if (name.compare("content-length", Qt::CaseInsensitive) == 0)
+        }
+        else if (name.compare("content-length", Qt::CaseInsensitive) == 0)
             m_sentContentLengthHeader = true;
         else if (name.compare("date", Qt::CaseInsensitive) == 0)
             m_sentDate = true;
@@ -96,16 +104,21 @@ void QHttpResponse::writeHeaders()
         writeHeader(name.toLatin1(), value.toLatin1());
     }
 
-    if (!m_sentConnectionHeader) {
-        if (m_keepAlive && (m_sentContentLengthHeader || m_useChunkedEncoding)) {
+    if (!m_sentConnectionHeader)
+    {
+        if (m_keepAlive && (m_sentContentLengthHeader || m_useChunkedEncoding))
+        {
             writeHeader("Connection", "keep-alive");
-        } else {
+        }
+        else
+        {
             m_last = true;
             writeHeader("Connection", "close");
         }
     }
 
-    if (!m_sentContentLengthHeader && !m_sentTransferEncodingHeader) {
+    if (!m_sentContentLengthHeader && !m_sentTransferEncodingHeader)
+    {
         if (m_useChunkedEncoding)
             writeHeader("Transfer-Encoding", "chunked");
         else
@@ -114,21 +127,28 @@ void QHttpResponse::writeHeaders()
 
     // Sun, 06 Nov 1994 08:49:37 GMT - RFC 822. Use QLocale::c() so english is used for month and
     // day.
+    static QMutex requestDumpMutex;
+
+    requestDumpMutex.lock();
     if (!m_sentDate)
         writeHeader("Date",
                     QLocale::c().toString(QDateTime::currentDateTimeUtc(),
                                           "ddd, dd MMM yyyy hh:mm:ss") + " GMT");
+
+    requestDumpMutex.unlock();
 }
 
 void QHttpResponse::writeHead(int status)
 {
-    if (m_finished) {
+    if (m_finished)
+    {
         qWarning()
-            << "QHttpResponse::writeHead() Cannot write headers after response has finished.";
+                << "QHttpResponse::writeHead() Cannot write headers after response has finished.";
         return;
     }
 
-    if (m_headerWritten) {
+    if (m_headerWritten)
+    {
         qWarning() << "QHttpResponse::writeHead() Already called once for this response.";
         return;
     }
@@ -148,12 +168,14 @@ void QHttpResponse::writeHead(StatusCode statusCode)
 
 void QHttpResponse::write(const QByteArray &data)
 {
-    if (m_finished) {
+    if (m_finished)
+    {
         qWarning() << "QHttpResponse::write() Cannot write body after response has finished.";
         return;
     }
 
-    if (!m_headerWritten) {
+    if (!m_headerWritten)
+    {
         qWarning() << "QHttpResponse::write() You must call writeHead() before writing body data.";
         return;
     }
@@ -173,7 +195,8 @@ void QHttpResponse::waitForBytesWritten()
 
 void QHttpResponse::end(const QByteArray &data)
 {
-    if (m_finished) {
+    if (m_finished)
+    {
         qWarning() << "QHttpResponse::end() Cannot write end after response has finished.";
         return;
     }
