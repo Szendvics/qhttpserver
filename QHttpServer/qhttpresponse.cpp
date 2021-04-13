@@ -48,6 +48,7 @@ QHttpResponse::QHttpResponse(QHttpConnection *connection)
 
 QHttpResponse::~QHttpResponse()
 {
+
 }
 
 void QHttpResponse::setHeader(const QString &field, const QString &value)
@@ -56,6 +57,25 @@ void QHttpResponse::setHeader(const QString &field, const QString &value)
         m_headers[field] = value;
     else
         qWarning() << "QHttpResponse::setHeader() Cannot set headers after response has finished.";
+}
+
+void QHttpResponse::debugPrint()
+{
+    static QMutex responseDumpMutec;
+
+    responseDumpMutec.lock();
+    qInfo() << "HTTP_RESPONSE:" << this << QDateTime::currentDateTime().toString("yyyy.MM.dd HH:mm:ss.zzz") << "HEADER:" << headers() << "BODY:" << body();
+    responseDumpMutec.unlock();
+}
+
+const HeaderHash &QHttpResponse::headers() const
+{
+    return m_headers;
+}
+
+QString QHttpResponse::header(const QString &field)
+{
+    return m_headers.value(field.toLower(), "");
 }
 
 void QHttpResponse::writeHeader(const char *field, const QString &value)
@@ -180,17 +200,30 @@ void QHttpResponse::write(const QByteArray &data)
         return;
     }
 
-    m_connection->write(data);
+    if(m_connection)
+    {
+        m_connection->write(data);
+    }
+    else
+    {
+        qWarning() << "QHttpConnection was brooken before sending response!";
+    }
 }
 
 void QHttpResponse::flush()
 {
-    m_connection->flush();
+    if(m_connection)
+    {
+        m_connection->flush();
+    }
 }
 
 void QHttpResponse::waitForBytesWritten()
 {
-    m_connection->waitForBytesWritten();
+    if(m_connection)
+    {
+        m_connection->waitForBytesWritten();
+    }
 }
 
 void QHttpResponse::end(const QByteArray &data)
@@ -198,6 +231,8 @@ void QHttpResponse::end(const QByteArray &data)
     if (m_finished)
     {
         qWarning() << "QHttpResponse::end() Cannot write end after response has finished.";
+        /// @todo End connection and delete ourselves. Is this a still valid note?
+        deleteLater();
         return;
     }
 
@@ -213,7 +248,8 @@ void QHttpResponse::end(const QByteArray &data)
 
 void QHttpResponse::connectionClosed()
 {
+    qWarning() << "Http connection closed for response:" << this;
+    m_connection = nullptr;
     m_finished = true;
     Q_EMIT done();
-    deleteLater();
 }

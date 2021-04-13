@@ -23,6 +23,9 @@
 #include "qhttprequest.h"
 
 #include "qhttpconnection.h"
+#include <QDebug>
+#include <QMutex>
+#include <QDateTime>
 
 QHttpRequest::QHttpRequest(QHttpConnection *connection, QObject *parent)
     : QObject(parent), m_connection(connection), m_url("http://localhost/"), m_success(false)
@@ -31,6 +34,15 @@ QHttpRequest::QHttpRequest(QHttpConnection *connection, QObject *parent)
 
 QHttpRequest::~QHttpRequest()
 {
+}
+
+void QHttpRequest::debugPrint()
+{
+    static QMutex requestDumpMutex;
+
+    requestDumpMutex.lock();
+    qInfo() << "HTTP_REQUEST:" << this << QDateTime::currentDateTime().toString("yyyy.MM.dd HH:mm:ss.zzz") << "URL:" <<url() << "PATH:" << path() << "QUERY:" << url().query() << "METHOD:" << method() /*<< "HEADER:" << headers()*/ << "BODY:" << body();
+    requestDumpMutex.unlock();
 }
 
 QString QHttpRequest::header(const QString &field)

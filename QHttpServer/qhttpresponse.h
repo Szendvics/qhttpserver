@@ -42,7 +42,8 @@ class QHTTPSERVER_API QHttpResponse : public QObject
 
 public:
     /// HTTP status code.
-    enum StatusCode {
+    enum StatusCode
+    {
         STATUS_CONTINUE = 100,
         STATUS_SWITCH_PROTOCOLS = 101,
         STATUS_OK = 200,
@@ -99,6 +100,41 @@ public Q_SLOTS:
         @param value Header value to be set. */
     void setHeader(const QString &field, const QString &value);
 
+public:
+    void debugPrint();
+
+    /// Return all the headers sent by the client.
+    /** This returns a reference. If you want to store headers
+        somewhere else, where the request may be deleted,
+        make sure you store them as a copy.
+        @note All header names are <b>lowercase</b>
+        so that Content-Length becomes content-length etc. */
+    const HeaderHash &headers() const;
+
+    /// Get the value of a header.
+    /** Headers are stored as lowercase so the input @c field will be lowercased.
+        @param field Name of the header field
+        @return Value of the header or empty string if not found. */
+    QString header(const QString &field);
+
+    /// Response body data
+    const QByteArray& body() const
+    {
+        return m_body;
+    }
+
+    /// Response body data
+    QByteArray& body()
+    {
+        return m_body;
+    }
+
+    void setBody(QByteArray& input)
+    {
+        m_body += input;
+    }
+
+public Q_SLOTS:
     /// Writes the header section of the response
     /// using @c status as the response status code.
     /** @param statusCode Status code for the response.
@@ -154,6 +190,7 @@ private:
     QHttpConnection *m_connection;
 
     HeaderHash m_headers;
+    QByteArray m_body;
 
     bool m_headerWritten;
     bool m_sentConnectionHeader;

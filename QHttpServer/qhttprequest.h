@@ -59,10 +59,12 @@ class QHTTPSERVER_API QHttpRequest : public QObject
 
 public:
     virtual ~QHttpRequest();
+    void debugPrint();
 
     /// Request method enumeration.
     /** @note Taken from http_parser.h -- make sure to keep synced */
-    enum HttpMethod {
+    enum HttpMethod
+    {
         HTTP_DELETE = 0,
         HTTP_GET,
         HTTP_HEAD,
@@ -182,11 +184,26 @@ private:
 
     static QString MethodToString(HttpMethod method);
 
-    void setMethod(HttpMethod method) { m_method = method; }
-    void setVersion(const QString &version) { m_version = version; }
-    void setUrl(const QUrl &url) { m_url = url; }
-    void setHeaders(const HeaderHash headers) { m_headers = headers; }
-    void setSuccessful(bool success) { m_success = success; }
+    void setMethod(HttpMethod method)
+    {
+        m_method = method;
+    }
+    void setVersion(const QString &version)
+    {
+        m_version = version;
+    }
+    void setUrl(const QUrl &url)
+    {
+        m_url = url;
+    }
+    void setHeaders(const HeaderHash headers)
+    {
+        m_headers = headers;
+    }
+    void setSuccessful(bool success)
+    {
+        m_success = success;
+    }
 
     QHttpConnection *m_connection;
     HeaderHash m_headers;
